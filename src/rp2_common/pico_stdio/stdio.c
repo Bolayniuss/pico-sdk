@@ -46,6 +46,25 @@ bool stdout_serialize_begin(void) {
     return mutex_try_enter_block_until(&print_mutex, make_timeout_time_ms(PICO_STDIO_DEADLOCK_TIMEOUT_MS));
 }
 
+bool stdout_serialize_with_timeout_begin(int32_t timeout) {
+    uint core_num = get_core_num();
+    uint32_t owner;
+    if (!mutex_try_enter(&print_mutex, &owner)) {
+        if (owner == core_num) {
+            return false;
+        }
+        // other core owns the mutex, so lets wait
+        if (timeout < 0) {
+            mutex_enter_blocking(&print_mutex);
+        } else if (timeout == 0) {
+            return mutex_try_enter(&print_mutex, NULL);
+        } else {
+            return mutex_enter_timeout_ms(&print_mutex, (uint32_t) timeout);
+        }
+    }
+    return true;
+}
+
 void stdout_serialize_end(void) {
     mutex_exit(&print_mutex);
 }
