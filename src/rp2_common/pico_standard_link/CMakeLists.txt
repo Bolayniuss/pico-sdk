@@ -1,10 +1,14 @@
 if (NOT TARGET pico_standard_link)
     pico_add_library(pico_standard_link)
 
+    set(pico_standard_link_SOURCES ${CMAKE_CURRENT_LIST_DIR}/crt0.S ${CMAKE_CURRENT_LIST_DIR}/binary_info.c)
+    if(NOT DEFINED PICO_SDK_PURE_C)
+        message("C++ enabled, add ${CMAKE_CURRENT_LIST_DIR}/new_delete.cpp")
+        set(pico_standard_link_SOURCES ${pico_standard_link_SOURCES} ${CMAKE_CURRENT_LIST_DIR}/new_delete.cpp)
+    endif()
+
     target_sources(pico_standard_link INTERFACE
-        ${CMAKE_CURRENT_LIST_DIR}/crt0.S
-        ${CMAKE_CURRENT_LIST_DIR}/new_delete.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/binary_info.c
+        ${pico_standard_link_SOURCES}
     )
 
     pico_add_map_output(pico_standard_link)
